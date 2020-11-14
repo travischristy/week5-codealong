@@ -48,3 +48,49 @@ chinstraps %>%
 Re: Histogram - The distribution overall looks somewhat normal (bell shaped)
   
 Re: QQ Plot - Linear distribution means they are close to normal (this is what very close to normal looks like)
+  
+  
+## Get Vectors of body_mass_g for female and male chinstrap penguins separately
+
+```{r}
+chinstraps_f <- chinstraps %>% 
+  filter(sex == "female") %>% 
+  pull(body_mass_g)
+
+chinstraps_m <- chinstraps %>% 
+  filter(sex == "male") %>% 
+  pull(body_mass_g)
+```
+
+## T-Tests, a couple different ways
+
+1. Is there a significant difference in body mass between male and female chinstrap penguins? (Use two-sided t-test)
+
+```{r}
+chinstrap_ttest <- t.test(chinstraps_f, chinstraps_m)
+chinstrap_ttest
+
+cohen.d(chinstraps_m, chinstraps_f)
+```
+
+You can see from the t-test the P-value allows us to reject null hypothesis
+You can see from the cohen's d test, that there is a large effect size
+  
+
+One-sided t-test: Are male chinstrap penguins significantly larger (in body mass) than female chinstrap penguins?
+
+```{r}
+t.test(chinstraps_m, chinstraps_f, alternative = "greater")
+```
+
+
+
+
+
+
+
+
+
+
+
+

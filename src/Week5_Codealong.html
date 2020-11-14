@@ -404,6 +404,57 @@ chinstraps %&gt;%
 ## 2 male       3939.        3950    362.          34</code></pre>
 <p>Re: Histogram - The distribution overall looks somewhat normal (bell shaped)</p>
 <p>Re: QQ Plot - Linear distribution means they are close to normal (this is what very close to normal looks like)</p>
+<div id="get-vectors-of-body_mass_g-for-female-and-male-chinstrap-penguins-separately" class="section level2">
+<h2>Get Vectors of body_mass_g for female and male chinstrap penguins separately</h2>
+<pre class="r"><code>chinstraps_f &lt;- chinstraps %&gt;% 
+  filter(sex == &quot;female&quot;) %&gt;% 
+  pull(body_mass_g)
+
+chinstraps_m &lt;- chinstraps %&gt;% 
+  filter(sex == &quot;male&quot;) %&gt;% 
+  pull(body_mass_g)</code></pre>
+</div>
+<div id="t-tests-a-couple-different-ways" class="section level2">
+<h2>T-Tests, a couple different ways</h2>
+<ol style="list-style-type: decimal">
+<li>Is there a significant difference in body mass between male and female chinstrap penguins? (Use two-sided t-test)</li>
+</ol>
+<pre class="r"><code>chinstrap_ttest &lt;- t.test(chinstraps_f, chinstraps_m)
+chinstrap_ttest</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  chinstraps_f and chinstraps_m
+## t = -5.2077, df = 62.575, p-value = 2.264e-06
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -569.7903 -253.7391
+## sample estimates:
+## mean of x mean of y 
+##  3527.206  3938.971</code></pre>
+<pre class="r"><code>cohen.d(chinstraps_m, chinstraps_f)</code></pre>
+<pre><code>## 
+## Cohen&#39;s d
+## 
+## d estimate: 1.263061 (large)
+## 95 percent confidence interval:
+##     lower     upper 
+## 0.7327341 1.7933879</code></pre>
+<p>You can see from the t-test the P-value allows us to reject null hypothesis You can see from the cohen’s d test, that there is a large effect size</p>
+<p>One-sided t-test: Are male chinstrap penguins significantly larger (in body mass) than female chinstrap penguins?</p>
+<pre class="r"><code>t.test(chinstraps_m, chinstraps_f, alternative = &quot;greater&quot;)</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  chinstraps_m and chinstraps_f
+## t = 5.2077, df = 62.575, p-value = 1.132e-06
+## alternative hypothesis: true difference in means is greater than 0
+## 95 percent confidence interval:
+##  279.7552      Inf
+## sample estimates:
+## mean of x mean of y 
+##  3938.971  3527.206</code></pre>
+</div>
 </div>
 
 
