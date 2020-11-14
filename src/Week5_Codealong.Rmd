@@ -1,0 +1,50 @@
+---
+title: 'Week 5 Coding: T-tests, Cohen''s d, one-way ANOVA'
+author: "Travis Christy"
+date: "11/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(palmerpenguins)
+library(effsize)
+library(broom)
+library(ggbeeswarm)
+library(car)
+```
+
+# Part 1. T-tests
+
+Mass comparison: male & female chinstrap penguins
+
+First we are doing some exploring
+
+```{r}
+chinstraps <- penguins %>% 
+  filter(species == "Chinstrap")
+
+# Histograms
+ggplot(data = chinstraps, aes(x = body_mass_g)) +
+  geom_histogram(bins = 10) +
+  facet_wrap(~sex)
+
+# Quantile Quantile Plots
+ggplot(data = chinstraps, aes(sample = body_mass_g)) +
+  geom_qq() +
+  facet_wrap(~sex)
+
+# Get descriptive statistics with summary table
+chinstraps %>% 
+  group_by(sex) %>% 
+  summarise(
+    mean_mass = mean(body_mass_g),
+    median_mass = median(body_mass_g),
+    sd_mass = sd(body_mass_g),
+    sample_size = n()
+  )
+```
+Re: Histogram - The distribution overall looks somewhat normal (bell shaped)
+  
+Re: QQ Plot - Linear distribution means they are close to normal (this is what very close to normal looks like)
