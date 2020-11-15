@@ -64,7 +64,7 @@ chinstraps_m <- chinstraps %>%
 
 ## T-Tests, a couple different ways
 
-1. Is there a significant difference in body mass between male and female chinstrap penguins? (Use two-sided t-test)
+Is there a significant difference in body mass between male and female chinstrap penguins? (Use two-sided t-test)
 
 ```{r}
 chinstrap_ttest <- t.test(chinstraps_f, chinstraps_m)
@@ -77,11 +77,131 @@ You can see from the t-test the P-value allows us to reject null hypothesis
 You can see from the cohen's d test, that there is a large effect size
   
 
-One-sided t-test: Are male chinstrap penguins significantly larger (in body mass) than female chinstrap penguins?
+Are male chinstrap penguins significantly larger (in body mass) than female chinstrap penguins? (use one-sided t-test)
 
 ```{r}
 t.test(chinstraps_m, chinstraps_f, alternative = "greater")
 ```
+
+
+## One way ANOVA
+
+Comparing means across more than 2 groups. One-way means exploring a single factor.
+
+### Data Exploration: 
+#### 1. Table of counts by species and sex
+
+```{r}
+penguins_counts <- penguins %>% 
+  count(species, sex)
+penguins_counts
+```
+
+#### 2. Create subset of only female penguins & look at distributions
+
+Histograms: A few different styles
+```{r}
+penguin_f <- penguins %>% 
+  filter(sex == "female")
+
+ggplot(data = penguin_f, aes(x = flipper_length_mm)) +
+  geom_histogram(aes(fill = species))
+
+ggplot(data = penguin_f, aes(x = flipper_length_mm)) +
+  geom_histogram() +
+  facet_wrap(~species)
+
+ggplot(data = penguin_f, aes(x = flipper_length_mm)) +
+  geom_histogram(aes(fill = species)) +
+  facet_wrap(~species) # to see distributions across groups
+
+ggplot(data = penguin_f, aes(x = flipper_length_mm)) +
+  geom_histogram(aes(fill = species)) +
+  facet_wrap(~species, scales = "free") # to see distributions within groups
+```
+QQ Plots
+```{r}
+ggplot(data = penguin_f, aes(sample = flipper_length_mm)) +
+  geom_qq(aes(color = species)) +
+  facet_wrap(~species, scales = "free")
+# the linear distribution is pretty close to what is possible in real-life data, close to the best you can hope for
+```
+
+### Summary Statistics
+
+```{r}
+penguin_f_summary <- penguin_f %>% 
+  group_by(species) %>% 
+  summarise(
+    mean_flipper_length = mean(flipper_length_mm),
+    sd_flipper_length = sd(flipper_length_mm),
+    sample_size = n(),
+    se_flipper_length = sd(flipper_length_mm)/sqrt(n()),
+    var_flipper_length = var(flipper_length_mm)
+  )
+
+penguin_f_summary
+```
+Remember the ANOVA test is robust to violations of the normality assumptions and the equal variance assumption. You have to look at the data and then also run the Levene's test for equal variance. Generally, if the largest sample variance is <4x the smallest sample variance, the variances are close enough. Here, the largest sample variance is Chinstrap (33.1) and the smallest sample variance is Gentoo (15.2) which is only 2X less than the largest (within the <4x guideline). 
+
+
+#### Levene's test for equal variance
+
+Use with caution, has same problem as other hypothesis tests do -- larger sample sizes are more likely to show significance. If you get a result that shows significant difference, then check back to make sure the variance falls within the 4:1 guidelines.
+```{r}
+leveneTest(flipper_length_mm ~ species, data = penguin_f)
+```
+
+.05782 is above the .05 threshold, yes we can assume equal variance.
+
+### Beeswarm plot with mean +/- 1 standard deviation (sd)
+
+```{r}
+ggplot()+
+  geom_beeswarm(data = penguin_f, aes(x = species, y = flipper_length_mm))
+
+ggplot()+
+  geom_beeswarm(data = penguin_f, 
+                aes(x = species, y = flipper_length_mm),
+                color = "gray70",
+                size = 3,
+                alpha = 0.5) +
+  geom_point(data = penguin_f_summary, aes(x = species, y = mean_flipper_length),
+             size = 3) +
+  geom_errorbar(data = penguin_f_summary, 
+                aes(x = species, 
+                    ymax = mean_flipper_length + sd_flipper_length,
+                    ymin = mean_flipper_length - sd_flipper_length),
+                width = 0.1) +
+  theme_light()
+```
+
+We have decided that a means comparison via ANOVA is appropriate from all the above data viz
+
+### One-way ANOVA
+
+```{r}
+penguin_aov <- aov(flipper_length_mm ~ species, data = penguin_f)
+summary(penguin_aov)
+```
+
+You can see with the very high F value that there is high variance across the groups compared to the variance between groups. The p-value is extremely low and means we can reject the null hypothesis that the groups were actually drawn from populations with the same mean values. Now, we use a post-hoc test TukeyHSD to find the adjusted significant difference between each pair of groups.
+
+```{r}
+TukeyHSD(penguin_aov)
+```
+
+If you have very different sample sizes, variance, and overall unbalanced design, you would use a type III ANOVA with the car package:
+
+First create linear model to find linear relationship
+```{r}
+penguin_lm <- lm(flipper_length_mm ~ species, data = penguin_f)
+pengiun_aov_t3 <- Anova(penguin_lm, type = "III")
+```
+```{r}
+pengiun_aov_t3
+```
+
 
 
 
